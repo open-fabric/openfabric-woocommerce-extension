@@ -25,9 +25,6 @@
           </table>
 
           <div class="of-payment-settings-section-inner" style="padding-top:1rem;padding-bottom:0.5rem;margin:0 -1.3rem">
-            <?php if ($tab == false) { ?>
-            <span class="of-green-check">Tested on <?php echo date('Y-m-d H:i:s') ?></span>
-            <?php } ?>
           </div>
 
           <div class="of-payment-settings-section-inner of-payment-settings-section-footer" style="margin:0 -1.3rem">
