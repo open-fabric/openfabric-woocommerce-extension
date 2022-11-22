@@ -81,7 +81,7 @@ class OF_Payment_Method_Base extends WC_Payment_Gateway {
       'refunds',
     );
 
-    $env = $this->settings['is_live'] == 'yes' ? 'production' : 'sandbox';
+    $env = $this->get_option( 'is_live' ) == 'yes' ? 'production' : 'sandbox';
     $this->auth_endpoint = $this->auth_endpoints[$env];
     $this->merchant_endpoint = $this->merchant_endpoints[$env];
 
@@ -214,10 +214,7 @@ class OF_Payment_Method_Base extends WC_Payment_Gateway {
    */
   public function is_available() {
     $client_credentials = $this->get_client_credentials();
-    $pg_credentials = $this->get_credentials(
-      $this->get_option( 'payment_gateway' ),
-      $this->settings
-    );
+    $pg_credentials = $this->get_pg_credentials();
 
     return !empty($client_credentials)
         && !empty($client_credentials['client_id'])
@@ -556,10 +553,10 @@ class OF_Payment_Method_Base extends WC_Payment_Gateway {
     update_option('webhook_auth_header', $webhook_auth_header);
     update_option('webhook_auth_value', $webhook_auth_value);
 
-    $pg_name = $this->settings['payment_gateway'];
-    $credentials = $this->get_credentials($pg_name, $this->settings);
+    $pg_name = $this->get_option( 'payment_gateway' );
+    $pg_credentials = $this->get_pg_credentials();
 
-    $webhook_response = $merchant_API->configure($webhook_url, $webhook_auth_header, $webhook_auth_value, $pg_name, $credentials);
+    $webhook_response = $merchant_API->configure($webhook_url, $webhook_auth_header, $webhook_auth_value, $pg_name, $pg_credentials);
     if ( is_wp_error( $webhook_response ) ) {
       error_log(print_r("################### settings #####################", TRUE));
       error_log(print_r($webhook_response, TRUE));
@@ -612,8 +609,6 @@ class OF_Payment_Method_Base extends WC_Payment_Gateway {
     $merchant_result_url = $current_url . "?wc-api=payment_success&order_id=$order_id";
     $merchant_fail_url = $current_url . "?wc-api=payment_failed&order_id=$order_id";
 
-    /*     $pg_name = isset($this->settings['stripe_api_key']) || isset($this->settings['xendit_public_api_key']) ? $this->settings['payment_gateway'] : null; */
-    /*     $pg_name = $this->get_option( 'payment_gateway' ); */
     $merchant_reference_id = $order->get_order_key();
     $tax_amount_percent = round(($order->get_total_tax() / $order->get_total()) * 100);
 
@@ -777,7 +772,7 @@ class OF_Payment_Method_Base extends WC_Payment_Gateway {
           true => 'Live',
           false => 'Test',
         ),
-        'tab' => $this->settings['is_live'],
+        'tab' => $this->get_option( 'is_live' ),
       ),
       'payment_gateway' => array(
         'title' => __(
@@ -793,7 +788,7 @@ class OF_Payment_Method_Base extends WC_Payment_Gateway {
           true => 'Live',
           false => 'Test',
         ),
-        'tab' => $this->settings['is_live'],
+        'tab' => $this->get_option( 'is_live' ),
       ),
     );
 
@@ -980,19 +975,20 @@ class OF_Payment_Method_Base extends WC_Payment_Gateway {
    * @param $data
    * @return array|array[]
    */
-  private function get_credentials($pg_name, $data) {
-    $env = $data['is_live'] == 'yes' ? 'live' : 'test';
+  private function get_pg_credentials() {
+    $env = $this->get_option( 'is_live' ) == 'yes' ? 'live' : 'test';
+    $pg_name = $this->get_option( 'payment_gateway' );
     return array(
-      'public_api_key' => $data["{$pg_name}_{$env}_public_api_key"],
-      'private_api_key' => $data["{$pg_name}_{$env}_private_api_key"],
+      'public_api_key' => $this->get_option( "{$pg_name}_{$env}_public_api_key" ),
+      'private_api_key' => $this->get_option( "{$pg_name}_{$env}_private_api_key" ),
     );
   }
 
   private function get_client_credentials() {
-    $env = $this->settings['is_live'] == 'yes' ? 'live' : 'test';
+    $env = $this->get_option( 'is_live' ) == 'yes' ? 'live' : 'test';
     return array(
-      'client_id' => $this->settings["{$env}_client_id"],
-      'client_secret' => $this->settings["{$env}_client_secret"],
+      'client_id' => $this->get_option( "{$env}_client_id" ),
+      'client_secret' => $this->get_option( "{$env}_client_secret" ),
     );
   }
 }
