@@ -932,9 +932,14 @@ class OF_Payment_Method_Base extends WC_Payment_Gateway {
     $field_key = $this->get_field_key( $key );
     $defaults  = array(
       'title'             => '',
+      'disabled'          => false,
       'class'             => '',
       'css'               => '',
       'description'       => '',
+      'placeholder'       => '',
+      'type'              => 'text',
+      'desc_tip'          => false,
+      'custom_attributes' => array(),
     );
 
     $data = wp_parse_args( $data, $defaults );
