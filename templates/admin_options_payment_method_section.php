@@ -25,6 +25,11 @@
           </table>
 
           <div class="of-payment-settings-section-inner" style="padding-top:1rem;padding-bottom:0.5rem;margin:0 -1.3rem">
+            <?php $env = $tab == true ? 'yes' : 'no'; ?>
+            <?php $timestamp = get_option( "{$this->id}_check_connection_timestamp_{$env}" ); ?>
+            <?php if (!empty($timestamp)) { ?>
+              <span class="of-green-check">Tested on <?php echo date('Y-m-d H:i:s', $timestamp) ?></span>
+            <?php } ?>
           </div>
 
           <div class="of-payment-settings-section-inner of-payment-settings-section-footer" style="margin:0 -1.3rem">

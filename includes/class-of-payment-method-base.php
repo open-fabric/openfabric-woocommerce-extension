@@ -117,8 +117,8 @@ class OF_Payment_Method_Base extends WC_Payment_Gateway {
     error_log(print_r("################### webhook_update #####################", TRUE));
     error_log(print_r($payload, TRUE));
 
-    $stored_webhook_auth_header = get_option("webhook_auth_header");
-    $stored_webhook_auth_value = get_option("webhook_auth_value");
+    $stored_webhook_auth_header = get_option( 'webhook_auth_header' );
+    $stored_webhook_auth_value = get_option( 'webhook_auth_value' );
 
     $all_headers = getallheaders();
 
@@ -517,6 +517,7 @@ class OF_Payment_Method_Base extends WC_Payment_Gateway {
 
     $env = $this->get_option( 'is_live', 'no' ) == 'yes' ? 'production' : 'sandbox';
     $client_credentials = $this->get_client_credentials();
+    update_option("{$this->id}_check_connection_timestamp_{$this->get_option( 'is_live' )}", null);
 
     // Connectivity check
     $auth_api = new Auth_API(
@@ -545,10 +546,10 @@ class OF_Payment_Method_Base extends WC_Payment_Gateway {
     );
 
     $current_url = get_site_url();
-    $webhook_url = $current_url . "?wc-api=merchant_webhook";
+    $webhook_url = $current_url . '?wc-api=merchant_webhook';
 
-    $webhook_auth_header = get_option('webhook_auth_header') ?? gen_uuid();
-    $webhook_auth_value = get_option('webhook_auth_value') ?? gen_uuid();
+    $webhook_auth_header = get_option( 'webhook_auth_header' ) ?? gen_uuid();
+    $webhook_auth_value = get_option( 'webhook_auth_value' ) ?? gen_uuid();
 
     update_option('webhook_auth_header', $webhook_auth_header);
     update_option('webhook_auth_value', $webhook_auth_value);
@@ -569,6 +570,7 @@ class OF_Payment_Method_Base extends WC_Payment_Gateway {
     }
 
     set_transient("{$this->id}_tenant_id", $webhook_response->webhook->tenant_id);
+    update_option("{$this->id}_check_connection_timestamp_{$this->get_option( 'is_live' )}", time());
 
     return $saved;
   }
