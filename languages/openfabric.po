@@ -1,0 +1,248 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-11-29 11:08+0700\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: includes/class-of-payment-method-base.php:155
+#: includes/class-of-payment-method-base.php:195
+msgid "Payment has been cancelled."
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:240
+#, php-format
+msgid "Enable %s on Checkout"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:244
+#, php-format
+msgid "When enabled, %s will appear on checkout."
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:252
+msgid "Display Settings"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:253
+msgid ""
+"Enter payment method details that will be displayed at checkout and in order "
+"notes."
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:258
+msgid "Name"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:259
+msgid "Title the customer sees during checkout and order notes."
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:264
+msgid "Description"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:265
+msgid "Description the customer sees during checkout and order notes."
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:278
+msgid "Environment"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:281
+#, php-format
+msgid ""
+"When mode = Test, we will use Test %s and Payment Gateway credentials to run "
+"a transaction. Use this mode to run test transactions.<br />When mode = "
+"Live, we will use your Live %s and Payment Gateway credentials to run a "
+"transaction."
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:301
+#: includes/class-of-payment-method-base.php:321
+msgid "Client ID"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:303
+#: includes/class-of-payment-method-base.php:313
+#: includes/class-of-payment-method-base.php:323
+#: includes/class-of-payment-method-base.php:333
+msgid "alphanumeric values only. No space or special characters."
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:311
+#: includes/class-of-payment-method-base.php:331
+msgid "Client Secret"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:346
+msgid "Payment Gateway"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:354
+#, php-format
+msgid ""
+"Ensure that you have enabled test mode on your %s account and provide test "
+"keys"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:361
+msgid "Stripe Live Publishable Key"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:362
+msgid "Stripe Live Publishable key"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:369
+#: includes/class-of-payment-method-base.php:370
+msgid "Stripe Live Secret Key"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:377
+msgid "Stripe Test Publishable Key"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:378
+msgid "Stripe Test Publishable key"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:385
+#: includes/class-of-payment-method-base.php:386
+msgid "Stripe Test Private Key"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:393
+#: includes/class-of-payment-method-base.php:394
+msgid "Xendit Live Public API key"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:401
+#: includes/class-of-payment-method-base.php:402
+msgid "Xendit Live Private API key"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:409
+#: includes/class-of-payment-method-base.php:410
+msgid "Xendit Test Public API key"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:417
+#: includes/class-of-payment-method-base.php:418
+msgid "Xendit Test Private API key"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:425
+#: includes/class-of-payment-method-base.php:426
+msgid "PayMaya Live Public API key"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:433
+#: includes/class-of-payment-method-base.php:434
+msgid "PayMaya Live Private API key"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:441
+#: includes/class-of-payment-method-base.php:442
+msgid "PayMaya Test Public API key"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:449
+#: includes/class-of-payment-method-base.php:450
+msgid "PayMaya Test Private API key"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:457
+#: includes/class-of-payment-method-base.php:458
+msgid "PayMongo Live Public API key"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:465
+#: includes/class-of-payment-method-base.php:466
+msgid "PayMongo Live Private API key"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:473
+#: includes/class-of-payment-method-base.php:474
+msgid "PayMongo Test Public API key"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:481
+#: includes/class-of-payment-method-base.php:482
+msgid "PayMongo Test Private API key"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:533
+#, php-format
+msgid ""
+"We encountered an issue with connecting with %s. Please try again later."
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:566
+msgid ""
+"We encountered an issue with connecting with Tenant . Please try again later."
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:596
+msgid "Awaiting payment"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:745
+msgid "General Settings"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:753
+msgid "Transaction Mode"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:755
+msgid ""
+"<p>Control how the transaction are executed.</p><p>Test = To run test "
+"transaction in test env<br/>Live = To run live transactions in prod env</p>"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:781
+msgid "Payment Gateway Account Settings"
+msgstr ""
+
+#: includes/class-of-payment-method-base.php:785
+msgid ""
+"<p>Your payment gateway account details will be used to automatically charge "
+"and settle funds using the virtual card we generate for a transaction.</"
+"p><p>You may need to fetch these details from your payment gateway account.</"
+"p><p>You can provide your payment gateway account details for live/test and "
+"test connection.</p>"
+msgstr ""
+
+#: includes/class-of-woocommerce-integration.php:23
+msgid "Order ID"
+msgstr ""
+
+#: includes/class-of-woocommerce-integration.php:24
+msgid "Transaction ID"
+msgstr ""
+
+#: includes/class-of-wordpress-integration.php:32
+msgid "Settings"
+msgstr ""
+
+#: openfabric-payment.php:30 openfabric-payment.php:31
+msgid "ACME"
+msgstr ""
+
+#: openfabric-payment.php:32
+msgid "Allow customers to pay with ACME"
+msgstr ""
