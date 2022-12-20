@@ -144,7 +144,7 @@ class Merchant_API {
       'headers' => array(
         'Content-Type' => 'application/json',
         'Authorization' => "Bearer {$this->auth_api->get_access_token()}",
-        'Idempotency-Key' => $order_key,
+        'Idempotency-Key' => sprintf('%s-%s', $order_key, time()),
       ),
       'body' => json_encode($body),
       'method' => 'POST',
