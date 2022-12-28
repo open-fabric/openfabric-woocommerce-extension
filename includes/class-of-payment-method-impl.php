@@ -69,7 +69,7 @@ return new class extends WC_Payment_Gateway {
 
     add_action("woocommerce_api_{$this->gateway->id}_payment_failed", array($this, 'handle_payment_failed'));
     add_action("woocommerce_api_{$this->gateway->id}_payment_success", array($this, 'handle_payment_success'));
-    add_action("woocommerce_api_{$this->gateway->id}_merchant_webhook", array($this, 'merchant_webhook_webhook'));
+    add_action("woocommerce_api_{$this->gateway->id}_merchant_webhook", array($this, 'handle_merchant_webhook'));
 
     $plugin_data = get_plugin_data($this->gateway->plugin_file);
     $this->decorators = array(
@@ -85,7 +85,7 @@ return new class extends WC_Payment_Gateway {
     $this->wc_admin_integration->register_integrations();
   }
 
-  function merchant_webhook_webhook() {
+  function handle_merchant_webhook() {
     $payload = json_decode(file_get_contents('php://input'), true);
     OF_Helpers::log($payload, 'webhook_update');
 
@@ -524,7 +524,7 @@ return new class extends WC_Payment_Gateway {
     );
 
     $current_url = get_site_url();
-    $webhook_url = $current_url . '?wc-api=merchant_webhook';
+    $webhook_url = $current_url . "?wc-api={$this->gateway->id}_merchant_webhook";
 
     $webhook_auth_header = get_option( 'webhook_auth_header' ) || OF_Helpers::gen_uuid();
     $webhook_auth_value = get_option( 'webhook_auth_value' ) || OF_Helpers::gen_uuid();
