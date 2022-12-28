@@ -1,18 +1,11 @@
 <?php
-
 require_once(plugin_dir_path(__FILE__) . 'class-of-wordpress-integration.php');
 require_once(plugin_dir_path(__FILE__) . 'class-of-woocommerce-integration.php');
 require_once(plugin_dir_path(__FILE__) . 'class-of-auth-api.php');
 require_once(plugin_dir_path(__FILE__) . 'class-of-merchant-api.php');
 require_once(plugin_dir_path(__FILE__) . 'class-of-instrumentation-support.php');
+require_once(plugin_dir_path(__FILE__) . 'class-of-helpers.php');
 
-if (!function_exists('debug_log')) {
-  function debug_log($data, $key = 'debug') {
-    error_log(print_r("################### $key #####################", TRUE));
-    error_log(print_r($data, TRUE));
-    error_log(print_r('########################################################', TRUE));
-  }
-}
 
 return new class extends WC_Payment_Gateway {
   private $gateway;

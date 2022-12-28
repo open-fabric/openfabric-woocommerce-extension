@@ -3,7 +3,7 @@ if (!defined('ABSPATH') || class_exists('OF_Merchant_API')) {
   return;
 }
 
-require_once(plugin_dir_path(__FILE__) . 'interface-of-request-decorator.php');
+require_once(plugin_dir_path(__FILE__) . 'class-of-helpers.php');
 
 class OF_Merchant_API {
   private $endpoint;
@@ -22,10 +22,10 @@ class OF_Merchant_API {
       return $access_token;
     }
 
-    $txn_trace_id = gen_uuid();
+    $txn_trace_id = OF_Helpers::gen_uuid();
     $response = wp_remote_post(
       "{$this->endpoint}/v1/tenants/partners/transactions?txn_trace_id=$txn_trace_id",
-      apply_decorators(array(
+      OF_Helpers::apply_decorators(array(
         'headers' => array(
           'Content-Type' => 'application/json',
           'Idempotency-Key' => $order['partner_reference_id'],
@@ -38,12 +38,10 @@ class OF_Merchant_API {
       ), $this->decorators)
     );
 
-    error_log(print_r("################### create_transaction.response #####################", TRUE));
-    error_log(print_r($response, TRUE));
-    error_log(print_r("########################################################", TRUE));
+    OF_Helpers::log($response, 'create_transaction.response');
 
-    $httpStatusCode = $response["response"]["code"];
-    $body = json_decode($response["body"]);
+    $httpStatusCode = $response['response']['code'];
+    $body = json_decode($response['body']);
     if ($httpStatusCode < 200 || $httpStatusCode > 299) {
       return new WP_Error(
         'error', "Error processing checkout. Please try again. ({$body->error_code} {$body->details[0]->message})"
@@ -59,7 +57,7 @@ class OF_Merchant_API {
   public function is_transaction_approved($id) {
     $url = "{$this->endpoint}/v1/tenants/partners/transactions/{$id}";
 
-    $response = wp_remote_get($url, apply_decorators(array(
+    $response = wp_remote_get($url, OF_Helpers::apply_decorators(array(
       'headers' => array(
         'Content-Type' => 'application/json',
         'Authorization' => "Bearer {$this->auth_api->get_access_token()}",
@@ -67,9 +65,7 @@ class OF_Merchant_API {
       'timeout' => 60,
     ), $this->decorators));
 
-    error_log(print_r('################### is_transaction_approved.response #####################', TRUE));
-    error_log(print_r($response, TRUE));
-    error_log(print_r('########################################################', TRUE));
+    OF_Helpers::log($response, 'is_transaction_approved.response');
 
     $httpStatusCode = $response['response']['code'];
     $body = json_decode($response['body']);
@@ -107,7 +103,7 @@ class OF_Merchant_API {
     );
 
     $url = "{$this->endpoint}/v1/tenants/partners/config";
-    $response = wp_remote_request($url, apply_decorators(array(
+    $response = wp_remote_request($url, OF_Helpers::apply_decorators(array(
       'headers' => array(
         'Content-Type' => 'application/json',
         'Authorization' => "Bearer {$this->auth_api->get_access_token()}",
@@ -141,7 +137,7 @@ class OF_Merchant_API {
     );
 
     $url = "{$this->endpoint}/v1/tenants/partners/transactions/{$txn_id}/refunds";
-    $response = wp_remote_request($url, apply_decorators(array(
+    $response = wp_remote_request($url, OF_Helpers::apply_decorators(array(
       'headers' => array(
         'Content-Type' => 'application/json',
         'Authorization' => "Bearer {$this->auth_api->get_access_token()}",

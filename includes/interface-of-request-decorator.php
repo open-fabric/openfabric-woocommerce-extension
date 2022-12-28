@@ -17,11 +17,3 @@ interface OF_Request_Decorator {
    */
   public function apply($request);
 }
-
-
-function apply_decorators($request, $decorators) {
-  foreach ($decorators as $decorator) {
-    $request = $decorator->apply($request);
-  }
-  return $request;
-}
