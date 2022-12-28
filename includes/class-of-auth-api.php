@@ -3,6 +3,8 @@ if (!defined('ABSPATH') || class_exists('OF_Auth_API')) {
   return;
 }
 
+require_once(plugin_dir_path(__FILE__) . 'class-of-helpers.php');
+
 class OF_Auth_API {
   private $endpoint;
   private $client_id;
@@ -35,12 +37,12 @@ class OF_Auth_API {
       )
     ));
 
-    error_log(print_r("################### get_access_token.response #####################", TRUE));
-    error_log(print_r($response, TRUE));
-    error_log(print_r("########################################################", TRUE));
+    OF_Helpers::log($response, 'get_access_token.response');
 
     $httpStatusCode = $response['response']['code'];
     if ($httpStatusCode < 200 || $httpStatusCode > 299) {
+      delete_transient( $this->cache_key );
+
       $errorMessage = json_decode($response['body']);
       return new WP_Error(
         'error', "{$errorMessage->error} ($httpStatusCode)"
@@ -52,7 +54,7 @@ class OF_Auth_API {
 
     $token = $response_data['access_token'];
     $expiration = $response_data['expires_in'];
-    set_transient( $this->cache_key, $token, $expiration );
+    set_transient( $this->cache_key, $token, $expiration - 60 );
 
     return $token;
   }
