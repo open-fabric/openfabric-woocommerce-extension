@@ -25,14 +25,14 @@ return new class extends WC_Payment_Gateway {
   );
 
   protected $auth_endpoints = array(
-    /*     'sandbox' => 'https://auth.dev.openfabric.co', */
-    'sandbox' => 'https://auth.sandbox.openfabric.co',
+    'sandbox' => 'https://auth.dev.openfabric.co',
+    /*     'sandbox' => 'https://auth.sandbox.openfabric.co', */
     'production' => 'https://auth.openfabric.co',
   );
 
   protected $merchant_endpoints = array(
-    /*     'sandbox' => 'https://api.dev.openfabric.co', */
-    'sandbox' => 'https://api.sandbox.openfabric.co',
+    'sandbox' => 'https://api.dev.openfabric.co',
+    /*     'sandbox' => 'https://api.sandbox.openfabric.co', */
     'production' => 'https://api.openfabric.co',
   );
 
@@ -67,8 +67,8 @@ return new class extends WC_Payment_Gateway {
     $this->admin_styles[$this->gateway->id . '_admin'] = 'admin.css';
     add_action('admin_enqueue_scripts', array($this, 'admin_enqueue_scripts'));
 
-    add_action('woocommerce_api_payment_failed', array($this, 'payment_failed_webhook'));
-    add_action('woocommerce_api_payment_success', array($this, 'payment_success_webhook'));
+    add_action('woocommerce_api_payment_failed', array($this, 'handle_payment_failed'));
+    add_action('woocommerce_api_payment_success', array($this, 'handle_payment_success'));
     add_action('woocommerce_api_merchant_webhook', array($this, 'merchant_webhook_webhook'));
 
     $plugin_data = get_plugin_data($this->gateway->plugin_file);
@@ -120,31 +120,48 @@ return new class extends WC_Payment_Gateway {
     }
   }
 
-  function payment_failed_webhook() {
-    error_log(print_r("################### webhook_update.failed #####################", TRUE));
-    error_log(print_r($_GET, TRUE));
+  /**
+   * This method updates the order status and metadata based on the parameters
+   * we get when redirected back from the payment method's website. There can be
+   * multiple instances of this registered for the same hook, so we need to be
+   * careful here.
+   */
+  function handle_payment_failed() {
+    // Check if the order payment is indeed processed with this payment method
+    $order = new WC_Order($_GET['order_id']);
+    if (strcasecmp($order->get_payment_method(), $this->gateway->id) != 0) {
+      return;
+    }
 
-    $order_id = $_GET['order_id'] ?? null;
-    $order = new WC_Order($order_id);
-    $order->update_status('failed', __('Payment has been cancelled.', 'wptut'));
+    OF_Helpers::log($_GET, 'webhook_update.failed');
 
+    $order->update_status('failed', __('Payment has been cancelled.', 'openfabric'));
     wp_redirect($this->get_return_url($order));
   }
 
-  function payment_success_webhook() {
-    $order_id = $_GET['order_id'] ?? null;
-    $txn_pg_charge_id = $_GET['txn_pg_charge_id'] ?? null;
-    $txn_id = $_GET['txn_id'] ?? null;
-    // $txn_trace_id = $_GET['txn_trace_id'] ?? null;
+  /**
+   * This method updates the order status and metadata based on the parameters
+   * we get when redirected back from the payment method's website. There can be
+   * multiple instances of this registered for the same hook, so we need to be
+   * careful here.
+   */
+  function handle_payment_success() {
+    // Check if the order payment is indeed processed with this payment method
+    $order = new WC_Order($_GET['order_id']);
+    if (strcasecmp($order->get_payment_method(), $this->gateway->id) != 0) {
+      return;
+    }
 
-    $order = new WC_Order($order_id);
+    OF_Helpers::log($_GET, 'webhook_update.success');
+
     $webhook_update = $order->get_meta('webhook_update');
-    error_log(print_r("################### webhook_update.success: $webhook_update #####################", TRUE));
-    error_log(print_r($_GET, TRUE));
-
     if (!empty($webhook_update)) {
       return wp_redirect($this->get_return_url($order));
     }
+
+    $txn_pg_charge_id = $_GET['txn_pg_charge_id'] ?? null;
+    $txn_id = $_GET['txn_id'] ?? null;
+    // $txn_trace_id = $_GET['txn_trace_id'] ?? null;
 
     $order->add_meta_data('txn_pg_charge_id', $txn_pg_charge_id);
     $order->save_meta_data();
@@ -157,16 +174,16 @@ return new class extends WC_Payment_Gateway {
     );
 
     // Transaction check
-    $merchant_API = new Merchant_API(
+    $merchant_API = new OF_Merchant_API(
       $this->merchant_endpoint,
       $auth_API,
       $this->decorators
     );
     $is_approved = $merchant_API->is_transaction_approved($txn_id);
 
-    if (isset($is_approved["error"])) {
+    if (isset($is_approved['error'])) {
       wc_add_notice($is_approved['error'], 'error');
-      $order->update_status('failed', __('Payment has been cancelled.', 'wptut'));
+      $order->update_status('failed', __('Payment has been cancelled.', 'openfabric'));
     } else if ($is_approved) {
       $order->update_status('completed');
     }
@@ -494,7 +511,7 @@ return new class extends WC_Payment_Gateway {
     update_option("{$this->gateway->id}_check_connection_timestamp_{$this->get_option( 'is_live' )}", null);
 
     // Connectivity check
-    $auth_api = new Auth_API(
+    $auth_api = new OF_Auth_API(
       $this->auth_endpoints[$env],
       $client_credentials['client_id'],
       $client_credentials['client_secret'],
@@ -513,7 +530,7 @@ return new class extends WC_Payment_Gateway {
     }
 
     // Webhook setup
-    $merchant_API = new Merchant_API(
+    $merchant_API = new OF_Merchant_API(
       $this->merchant_endpoints[$env],
       $auth_api,
       $this->decorators
@@ -522,8 +539,8 @@ return new class extends WC_Payment_Gateway {
     $current_url = get_site_url();
     $webhook_url = $current_url . '?wc-api=merchant_webhook';
 
-    $webhook_auth_header = get_option( 'webhook_auth_header' ) || $this->gen_uuid();
-    $webhook_auth_value = get_option( 'webhook_auth_value' ) || $this->gen_uuid();
+    $webhook_auth_header = get_option( 'webhook_auth_header' ) || OF_Helpers::gen_uuid();
+    $webhook_auth_value = get_option( 'webhook_auth_value' ) || OF_Helpers::gen_uuid();
 
     update_option('webhook_auth_header', $webhook_auth_header);
     update_option('webhook_auth_value', $webhook_auth_value);
@@ -570,12 +587,12 @@ return new class extends WC_Payment_Gateway {
     $order->update_status('on-hold', __('Awaiting payment', 'woocommerce'));
 
     $client_credentials = $this->get_client_credentials();
-    $auth_API = new Auth_API(
+    $auth_API = new OF_Auth_API(
       $this->auth_endpoint,
       $client_credentials['client_id'],
       $client_credentials['client_secret']
     );
-    $merchant_API = new Merchant_API(
+    $merchant_API = new OF_Merchant_API(
       $this->merchant_endpoint,
       $auth_API,
       $this->decorators
@@ -615,7 +632,7 @@ return new class extends WC_Payment_Gateway {
         $line_item['discount_amount'] = (float)($product->get_regular_price() - $product->get_price());
       }
 
-      debug_log( $item->get_subtotal_tax() / $item->get_subtotal());
+      OF_Helpers::log( $item->get_subtotal_tax() / $item->get_subtotal());
 
       $items[] = $line_item;
     }
@@ -687,12 +704,12 @@ return new class extends WC_Payment_Gateway {
    */
   public function process_refund($order_id, $amount = null, $reason = '') {
     $client_credentials = $this->get_client_credentials();
-    $auth_API = new Auth_API(
+    $auth_API = new OF_Auth_API(
       $this->auth_endpoint,
       $client_credentials['client_id'],
       $client_credentials['client_secret']
     );
-    $merchant_API = new Merchant_API(
+    $merchant_API = new OF_Merchant_API(
       $this->merchant_endpoint,
       $auth_API,
       $this->decorators
@@ -960,17 +977,6 @@ return new class extends WC_Payment_Gateway {
     return array(
       'client_id' => $this->get_option( "{$env}_client_id" ),
       'client_secret' => $this->get_option( "{$env}_client_secret" ),
-    );
-  }
-
-  private function gen_uuid() {
-    return sprintf(
-      '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-      mt_rand(0, 0xffff), mt_rand(0, 0xffff),
-      mt_rand(0, 0xffff),
-      mt_rand(0, 0x0fff) | 0x4000,
-      mt_rand(0, 0x3fff) | 0x8000,
-      mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
     );
   }
 };
