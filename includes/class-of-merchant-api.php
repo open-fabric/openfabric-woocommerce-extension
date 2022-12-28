@@ -114,12 +114,9 @@ class OF_Merchant_API {
       'timeout' => 60,
     ), $this->decorators));
 
-    error_log(print_r('################### webhook_setup.response #####################', TRUE));
-    error_log(print_r($response, TRUE));
-    error_log(print_r('########################################################', TRUE));
+    OF_Helpers::log($response, 'webhook_setup.response');
 
     $httpStatusCode = $response['response']['code'];
-
     if ($httpStatusCode < 200 || $httpStatusCode > 299) {
       $errorMessage = json_decode($response['body']);
       return new WP_Error(
@@ -149,12 +146,9 @@ class OF_Merchant_API {
       'timeout' => 60,
     ), $this->decorators));
 
-    error_log(print_r('################### rerfund.response #####################', TRUE));
-    error_log(print_r($response, TRUE));
-    error_log(print_r('########################################################', TRUE));
+    OF_Helpers::log( $response, 'refund.response' );
 
     $httpStatusCode = $response['response']['code'];
-
     if ($httpStatusCode < 200 || $httpStatusCode > 299) {
       $errorMessage = json_decode($response['body']);
       return array("error" => "{$errorMessage->message} ($httpStatusCode)");

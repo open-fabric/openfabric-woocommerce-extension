@@ -67,9 +67,9 @@ return new class extends WC_Payment_Gateway {
     $this->admin_styles[$this->gateway->id . '_admin'] = 'admin.css';
     add_action('admin_enqueue_scripts', array($this, 'admin_enqueue_scripts'));
 
-    add_action('woocommerce_api_payment_failed', array($this, 'handle_payment_failed'));
-    add_action('woocommerce_api_payment_success', array($this, 'handle_payment_success'));
-    add_action('woocommerce_api_merchant_webhook', array($this, 'merchant_webhook_webhook'));
+    add_action("woocommerce_api_{$this->gateway->id}_payment_failed", array($this, 'handle_payment_failed'));
+    add_action("woocommerce_api_{$this->gateway->id}_payment_success", array($this, 'handle_payment_success'));
+    add_action("woocommerce_api_{$this->gateway->id}_merchant_webhook", array($this, 'merchant_webhook_webhook'));
 
     $plugin_data = get_plugin_data($this->gateway->plugin_file);
     $this->decorators = array(
@@ -87,8 +87,7 @@ return new class extends WC_Payment_Gateway {
 
   function merchant_webhook_webhook() {
     $payload = json_decode(file_get_contents('php://input'), true);
-    error_log(print_r("################### webhook_update #####################", TRUE));
-    error_log(print_r($payload, TRUE));
+    OF_Helpers::log($payload, 'webhook_update');
 
     $webhook_auth_header = get_option( 'webhook_auth_header' );
     $webhook_auth_value = get_option( 'webhook_auth_value' );
@@ -122,38 +121,26 @@ return new class extends WC_Payment_Gateway {
 
   /**
    * This method updates the order status and metadata based on the parameters
-   * we get when redirected back from the payment method's website. There can be
-   * multiple instances of this registered for the same hook, so we need to be
-   * careful here.
+   * we get when redirected back from the payment method's website - in the case
+   * of success/approved.
    */
   function handle_payment_failed() {
-    // Check if the order payment is indeed processed with this payment method
-    $order = new WC_Order($_GET['order_id']);
-    if (strcasecmp($order->get_payment_method(), $this->gateway->id) != 0) {
-      return;
-    }
-
     OF_Helpers::log($_GET, 'webhook_update.failed');
 
+    $order = new WC_Order($_GET['order_id']);
     $order->update_status('failed', __('Payment has been cancelled.', 'openfabric'));
     wp_redirect($this->get_return_url($order));
   }
 
   /**
    * This method updates the order status and metadata based on the parameters
-   * we get when redirected back from the payment method's website. There can be
-   * multiple instances of this registered for the same hook, so we need to be
-   * careful here.
+   * we get when redirected back from the payment method's website - in the case
+   * of failure/declined.
    */
   function handle_payment_success() {
-    // Check if the order payment is indeed processed with this payment method
-    $order = new WC_Order($_GET['order_id']);
-    if (strcasecmp($order->get_payment_method(), $this->gateway->id) != 0) {
-      return;
-    }
-
     OF_Helpers::log($_GET, 'webhook_update.success');
 
+    $order = new WC_Order($_GET['order_id']);
     $webhook_update = $order->get_meta('webhook_update');
     if (!empty($webhook_update)) {
       return wp_redirect($this->get_return_url($order));
@@ -550,9 +537,7 @@ return new class extends WC_Payment_Gateway {
 
     $webhook_response = $merchant_API->configure($webhook_url, $webhook_auth_header, $webhook_auth_value, $pg_name, $pg_credentials);
     if ( is_wp_error( $webhook_response ) ) {
-      error_log(print_r("################### settings #####################", TRUE));
-      error_log(print_r($webhook_response, TRUE));
-      error_log(print_r("########################################################", TRUE));
+      OF_Helpers::log( $webhook_response, 'settings' );
       $this->add_error(
         __('We encountered an issue with connecting with Tenant . Please try again later.', 'openfabric')
       );
@@ -598,81 +583,8 @@ return new class extends WC_Payment_Gateway {
       $this->decorators
     );
 
-    $current_url = get_site_url();
-    $merchant_result_url = $current_url . "?wc-api=payment_success&order_id=$order_id";
-    $merchant_fail_url = $current_url . "?wc-api=payment_failed&order_id=$order_id";
-
-    $merchant_reference_id = $order->get_order_key();
-    $tax_amount_percent = round(($order->get_total_tax() / $order->get_total()) * 100);
-
-    $items = array();
-    foreach ($order->get_items() as $item_id => $item) {
-      $product = $item->get_product();
-
-      $line_item = array(
-        'item_id' => $item->get_id(),
-        'name' => $item->get_name(),
-        'description' => $product->get_description(),
-        'variation_name' => wc_get_formatted_variation($product, true),
-        /*         "categories" => [ */
-        /*           $items->get_type(), */
-        /*         ], */
-        'quantity' => $item->get_quantity(),
-        'original_price' => $product->get_regular_price(),
-        'price' => $product->get_price(),
-        'amount' => $item->get_total(),
-      );
-
-      if ($product->is_taxable()) {
-        /*         $line_item['tax_code'] = ; */
-        $line_item['tax_amount_percent'] = round( $item->get_subtotal_tax() / $item->get_subtotal() ) * 100.0;
-      }
-
-      if ($product->is_on_sale()) {
-        $line_item['discount_amount'] = (float)($product->get_regular_price() - $product->get_price());
-      }
-
-      OF_Helpers::log( $item->get_subtotal_tax() / $item->get_subtotal());
-
-      $items[] = $line_item;
-    }
-
-    $transaction_request = array(
-      "partner_reference_id" => $merchant_reference_id,
-      "tenant_id" => get_transient("{$this->gateway->id}_tenant_id"),
-      "partner_redirect_success_url" => $merchant_result_url,
-      "partner_redirect_fail_url" => $merchant_fail_url,
-      "pg_name" => $this->get_option( 'payment_gateway' ),
-      "pg_flow" => "charge",
-      "customer_info" => array(
-        "mobile_number" => $order->get_billing_phone(),
-        "first_name" => $order->get_billing_first_name(),
-        "last_name" => $order->get_billing_last_name(),
-        "email" => $order->get_billing_email(),
-      ),
-      "amount" => $order->get_total(),
-      "currency" => $order->get_currency(),
-      "status" => "Created",
-      "transaction_details" => array(
-        "shipping_address" => array(
-          "country_code" => $order->get_shipping_country() ?: $order->get_billing_country(),
-          "address_line_1" => $order->get_shipping_address_1() ?: $order->get_billing_address_1(),
-          "post_code" => $order->get_shipping_postcode() ?: $order->get_billing_postcode(),
-        ),
-        "billing_address" => array(
-          "country_code" => $order->get_billing_country(),
-          "address_line_1" => $order->get_billing_address_1(),
-          "post_code" => $order->get_billing_postcode(),
-        ),
-        "items" => $items,
-        "tax_amount_percent" => $tax_amount_percent,
-        "shipping_amount" => $order->get_shipping_total(),
-        "original_amount" => $order->get_total(),
-      ),
-    );
-
-    $gateway_redirect_response = $merchant_API->create_transaction($transaction_request);
-
+    $transaction_request = $this->process_order( $order );
+    $gateway_redirect_response = $merchant_API->create_transaction( $transaction_request );
     if (is_wp_error($gateway_redirect_response)) {
       wc_add_notice($gateway_redirect_response->get_error_message('error'), 'error');
       return array(
@@ -792,6 +704,87 @@ return new class extends WC_Payment_Gateway {
         include(plugin_dir_path(__FILE__) . '../templates/admin_options_section.php');
       }
     }
+  }
+
+  public function process_order_item( $item_id, $item, $order ) {
+    $product = $item->get_product();
+
+    $categories = array();
+    foreach ( wc_get_product_term_ids($item->get_id(), 'product_cat') as $cat_id ) {
+      $categories[] = get_term_by( 'id', $cat_id, 'product_cat' )->name;
+    }
+
+    $line_item = array(
+      'item_id' => $item->get_id(),
+      'name' => $item->get_name(),
+      'description' => $product->get_description(),
+      'variation_name' => wc_get_formatted_variation($product, true)
+                     || wc_get_formatted_variation($item, true)
+                     || $item->get_name(),
+      'quantity' => $item->get_quantity(),
+      'original_price' => $product->get_regular_price(),
+      'price' => $product->get_price(),
+      'amount' => $item->get_total(),
+    );
+
+    if ($product->is_taxable()) {
+      /* $line_item['tax_code'] = ; */
+      $line_item['tax_amount_percent'] = round( $item->get_subtotal_tax() / $item->get_subtotal() ) * 100.0;
+    }
+
+    if ($product->is_on_sale()) {
+      $line_item['discount_amount'] = (float)($product->get_regular_price() - $product->get_price());
+    }
+
+    return $line_item;
+  }
+
+  public function process_order( $order ) {
+    $current_url = get_site_url();
+    $merchant_result_url = $current_url . "?wc-api={$this->gateway->id}_payment_success&order_id={$order->get_id()}";
+    $merchant_fail_url = $current_url . "?wc-api={$this->gateway->id}_payment_failed&order_id={$order->get_id()}";
+
+    $merchant_reference_id = $order->get_order_key();
+    $tax_amount_percent = round(($order->get_total_tax() / $order->get_total()) * 100);
+
+    $items = array();
+    foreach ($order->get_items() as $item_id => $item) {
+      $items[] = $this->process_order_item( $item_id, $item, $order );
+    }
+
+    return array(
+      "partner_reference_id" => $merchant_reference_id,
+      "tenant_id" => get_transient("{$this->id}_tenant_id"),
+      "partner_redirect_success_url" => $merchant_result_url,
+      "partner_redirect_fail_url" => $merchant_fail_url,
+      "pg_name" => $this->get_option( 'payment_gateway' ),
+      "pg_flow" => "charge",
+      "customer_info" => array(
+        "mobile_number" => $order->get_billing_phone(),
+        "first_name" => $order->get_billing_first_name(),
+        "last_name" => $order->get_billing_last_name(),
+        "email" => $order->get_billing_email(),
+      ),
+      "amount" => $order->get_total(),
+      "currency" => $order->get_currency(),
+      "status" => "Created",
+      "transaction_details" => array(
+        "shipping_address" => array(
+          "country_code" => $order->get_shipping_country() ?: $order->get_billing_country(),
+          "address_line_1" => $order->get_shipping_address_1() ?: $order->get_billing_address_1(),
+          "post_code" => $order->get_shipping_postcode() ?: $order->get_billing_postcode(),
+        ),
+        "billing_address" => array(
+          "country_code" => $order->get_billing_country(),
+          "address_line_1" => $order->get_billing_address_1(),
+          "post_code" => $order->get_billing_postcode(),
+        ),
+        "items" => $items,
+        "tax_amount_percent" => $tax_amount_percent,
+        "shipping_amount" => $order->get_shipping_total(),
+        "original_amount" => $order->get_total(),
+      ),
+    );
   }
 
   public function generate_payment_method_section_html($section_key, $section, $form_fields) {
@@ -958,11 +951,6 @@ return new class extends WC_Payment_Gateway {
     return ob_get_clean();
   }
 
-  /**
-   * @param $pg_name
-   * @param $data
-   * @return array|array[]
-   */
   private function get_pg_credentials() {
     $env = $this->get_option( 'is_live' ) == 'yes' ? 'live' : 'test';
     $pg_name = $this->get_option( 'payment_gateway' );
