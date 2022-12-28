@@ -1,10 +1,11 @@
 <?php
-defined('ABSPATH') or die();
+if (!defined('ABSPATH') || class_exists('OF_Merchant_API')) {
+  return;
+}
 
 require_once(plugin_dir_path(__FILE__) . 'interface-of-request-decorator.php');
 
-
-class Merchant_API {
+class OF_Merchant_API {
   private $endpoint;
   private $auth_api;
   private $decorators;
@@ -144,7 +145,7 @@ class Merchant_API {
       'headers' => array(
         'Content-Type' => 'application/json',
         'Authorization' => "Bearer {$this->auth_api->get_access_token()}",
-        'Idempotency-Key' => sprintf('%s-%s', $order_key, time()),
+        'Idempotency-Key' => $order_key,
       ),
       'body' => json_encode($body),
       'method' => 'POST',

@@ -1,7 +1,9 @@
 <?php
-defined('ABSPATH') or die();
+if (!defined('ABSPATH') || class_exists('OF_Instrumentation_Support')) {
+  return;
+}
 
-class OF_Instrumenation_Support {
+class OF_Instrumentation_Support {
   private $source = 'sc_woocommerce';
   private $version;
   private $value;

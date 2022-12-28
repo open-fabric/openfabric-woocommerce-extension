@@ -1,4 +1,7 @@
 <?php
+if (!defined('ABSPATH') || class_exists('OF_Wordpress_Integration')) {
+  return;
+}
 
 class OF_Wordpress_Integration {
   protected $plugin_id;

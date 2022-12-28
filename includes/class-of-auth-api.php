@@ -1,7 +1,9 @@
 <?php
-defined('ABSPATH') or die();
+if (!defined('ABSPATH') || class_exists('OF_Auth_API')) {
+  return;
+}
 
-class Auth_API {
+class OF_Auth_API {
   private $endpoint;
   private $client_id;
   private $client_secret;

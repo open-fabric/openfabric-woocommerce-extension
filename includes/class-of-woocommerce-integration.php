@@ -1,6 +1,7 @@
 <?php
-
-defined('ABSPATH') or die();
+if (!defined('ABSPATH') || class_exists('OF_WooCommerce_Admin_Integration')) {
+  return;
+}
 
 class OF_WooCommerce_Admin_Integration {
 
