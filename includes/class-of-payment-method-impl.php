@@ -32,14 +32,14 @@ return new class extends WC_Payment_Gateway {
   );
 
   protected $auth_endpoints = array(
-    'sandbox' => 'https://auth.dev.openfabric.co',
-    /*     'sandbox' => 'https://auth.sandbox.openfabric.co', */
+    /*     'sandbox' => 'https://auth.dev.openfabric.co', */
+    'sandbox' => 'https://auth.sandbox.openfabric.co',
     'production' => 'https://auth.openfabric.co',
   );
 
   protected $merchant_endpoints = array(
-    'sandbox' => 'https://api.dev.openfabric.co',
-    /*     'sandbox' => 'https://api.sandbox.openfabric.co', */
+    /*     'sandbox' => 'https://api.dev.openfabric.co', */
+    'sandbox' => 'https://api.sandbox.openfabric.co',
     'production' => 'https://api.openfabric.co',
   );
 
