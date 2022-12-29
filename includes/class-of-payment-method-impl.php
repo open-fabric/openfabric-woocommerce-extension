@@ -22,6 +22,8 @@ return new class extends WC_Payment_Gateway {
     'stripe' => 'Stripe',
     'paymaya' => 'PayMaya',
     'paymongo' => 'PayMongo',
+    'checkout' => 'Checkout.com',
+    'adyen' => 'Adyen',
   );
 
   protected $auth_endpoints = array(
