@@ -585,7 +585,9 @@ return new class extends WC_Payment_Gateway {
       $this->decorators
     );
 
-    $transaction_request = $this->process_order( $order );
+    $transaction_request = $this->gateway->process_order( $order );
+    OF_Helpers::log($transaction_request, 'create_transaction.request');
+
     $gateway_redirect_response = $merchant_API->create_transaction( $transaction_request );
     if (is_wp_error($gateway_redirect_response)) {
       wc_add_notice($gateway_redirect_response->get_error_message('error'), 'error');
@@ -751,7 +753,7 @@ return new class extends WC_Payment_Gateway {
 
     $items = array();
     foreach ($order->get_items() as $item_id => $item) {
-      $items[] = $this->process_order_item( $item_id, $item, $order );
+      $items[] = $this->gateway->process_order_item( $item_id, $item, $order );
     }
 
     return array(

@@ -60,6 +60,14 @@ if (!class_exists('OF_Payment_Method_Base')) {
       return $this->impl->process_refund( $order_id, $amount, $reason );
     }
 
+    public function process_order( $order ) {
+      return $this->impl->process_order( $order );
+    }
+
+    public function process_order_item( $item_id, $item, $order ) {
+      return $this->impl->process_order_item( $item_id, $item, $order );
+    }
+
     static function register_payment_method( $payment_methods ) {
       $payment_methods[] = get_called_class();
       return $payment_methods;
